@@ -1,0 +1,30 @@
+# Virtual Environment
+venv/
+venv311/
+env/
+ENV/
+__pycache__/
+*.pyc
+
+# Data files
+*.csv
+!stores.csv
+data/
+*.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment variables
+.env
+config/database.ini
+config/config.yaml
