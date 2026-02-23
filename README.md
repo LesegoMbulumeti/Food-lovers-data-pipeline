@@ -1,56 +1,60 @@
-# 🛒 Food Lover's Market Store Location Pipeline
+📊 Dataset Fields
+FieldTypeDescriptionbranch_idNVARCHAR(12)Stable unique identifier (MD5 hash of name + address)store_nameNVARCHAR(255)Store nameaddress_lineNVARCHAR(500)Full street addresscityNVARCHAR(100)City or suburbprovinceNVARCHAR(100)South African provincepostal_codeNVARCHAR(10)Postal codelatitudeDECIMAL(10,7)GPS latitudelongitudeDECIMAL(10,7)GPS longitude
 
-A Python-based data pipeline that scrapes Food Lover's Market store locations and loads them into SQL Server.
+🚀 How It Works
+The pipeline runs in two steps:
+1. Scrape — scraper.py calls the Food Lover's Market WordPress REST API (/wp-json/wp/v2/store), paginates through all records, parses and cleans each store's fields, then saves:
 
-## 📋 Project Files
+Raw API response → data/raw/stores_raw.json
+Cleaned dataset → data/processed/stores.csv
 
-- **`scrape.txt`** - Web scraper that collects store data from Food Lover's Market website
-- **`load.txt`** - Python script to load CSV data into SQL Server
-- **`create_table.sql`** - SQL Server table creation script
-- **`stores.csv`** - Sample output with store location data
+2. Load — loader.py reads stores.csv and upserts each row into dbo.Stores on SQL Server using a MERGE statement, so the pipeline is safe to re-run without creating duplicates.
 
-## 🚀 Features
+🛠️ Tech Stack
 
-- Web scraping of store locations
-- Data cleaning and validation
-- CSV export functionality
-- SQL Server integration
-- Automated data loading with upsert capability
+Python 3.9+
+Requests — API calls
+BeautifulSoup4 — HTML parsing
+Pandas — data cleaning
+pyODBC — SQL Server connection
+SQL Server — data storage (via Docker locally)
+python-dotenv — environment variable management
 
-## 🛠️ Technologies Used
 
-- Python 3.10+
-- BeautifulSoup4 for web scraping
-- Pandas for data processing
-- pyODBC for SQL Server connection
-- SQL Server for data storage
-
-## 📊 Data Fields
-
-- `branch_id` - Unique store identifier
-- `store_name` - Store name
-- `address_line` - Street address
-- `city` - City or suburb
-- `province` - South African province
-- `postal_code` - Postal code
-- `latitude` - GPS latitude
-- `longitude` - GPS longitude
-
-## 🏁 Getting Started
-
+⚙️ Setup & Usage
 1. Clone the repository
-2. Set up virtual environment: `python3 -m venv venv`
-3. Activate it: `source venv/bin/activate`
-4. Install requirements: `pip install -r requirements.txt`
-5. Run scraper: `python scrape.txt`
-6. Load data: `python load.txt`
+bashgit clone https://github.com/LesegoMbulumeti/Food-lovers-data-pipeline-for-location.git
+cd Food-lovers-data-pipeline-for-location
+2. Create and activate virtual environment
+bashpython3 -m venv venv
+source venv/bin/activate
+3. Install dependencies
+bashpip install -r requirements.txt
+4. Configure environment variables
+Create a .env file in the project root:
+DB_SERVER=localhost
+DB_DATABASE=FoodLovers
+DB_USERNAME=SA
+DB_PASSWORD=your_password
+5. Set up SQL Server (Docker)
+bashdocker run -e ACCEPT_EULA=Y -e SA_PASSWORD=your_password -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
+6. Create the database and table
+bashdocker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P your_password -No -Q "CREATE DATABASE FoodLovers"
 
-## 👤 Author
+docker cp sql/create_table.sql sqlserver:/create_table.sql
 
-**Lesego Mbulumeti**
-- GitHub: [@LesegoMbulumeti](https://github.com/LesegoMbulumeti)
-- Email: Lesegombulumeti2@gmail.com
+docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P your_password -No -d FoodLovers -i /create_table.sql
+7. Run the scraper
+bashpython src/scraper.py
+8. Load data into SQL Server
+bashpython src/loader.py
 
-## 📝 License
+👤 Author
+Lesego Mbulumeti
 
+GitHub: @LesegoMbulumeti
+Email: Lesegombulumeti2@gmail.com
+
+
+📝 License
 This project is open source and available for educational purposes.
